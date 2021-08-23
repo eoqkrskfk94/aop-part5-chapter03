@@ -75,8 +75,8 @@ class MainActivity : AppCompatActivity() {
         cameraExecutor = Executors.newSingleThreadExecutor()
         viewFinder.postDelayed({
             displayId = viewFinder.display.displayId
+            bindCameraUseCase()
         }, 10)
-        bindCameraUseCase()
     }
 
     private fun bindCameraUseCase() = with(binding) {
@@ -127,6 +127,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 100
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
-        private val LENS_FACING: Int = CameraSelector.LENS_FACING_FRONT
+        private val LENS_FACING: Int = CameraSelector.LENS_FACING_BACK
     }
 }
