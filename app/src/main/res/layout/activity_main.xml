@@ -57,5 +57,16 @@
         android:contentDescription="미리보기"
         android:background="@color/black"/>
 
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/flashSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="@id/captureButton"
+        app:layout_constraintTop_toTopOf="@id/captureButton"
+        android:visibility="gone"
+        android:text="flash"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

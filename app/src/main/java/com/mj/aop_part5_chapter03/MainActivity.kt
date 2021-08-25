@@ -1,6 +1,7 @@
 package com.mj.aop_part5_chapter03
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -20,6 +21,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isGone
 import com.mj.aop_part5_chapter03.databinding.ActivityMainBinding
 import com.mj.aop_part5_chapter03.extensions.loadCenterCrop
 import com.mj.aop_part5_chapter03.util.PathUtil
@@ -49,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     private var isCapturing = false
     private var camera: Camera? = null
     private var root: View? = null
+    private var isFlashEnabled = false
 
     private val displayListener = object : DisplayManager.DisplayListener {
         override fun onDisplayAdded(p0: Int)  = Unit
@@ -126,6 +129,7 @@ class MainActivity : AppCompatActivity() {
                 preview.setSurfaceProvider(viewFinder.surfaceProvider)
                 bindCaptureListener()
                 bindZoomListener()
+                initFlashAndAddListener()
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -133,6 +137,20 @@ class MainActivity : AppCompatActivity() {
         }, cameraMainExecutor)
     }
 
+    private fun initFlashAndAddListener() = with(binding) {
+        val hasFlash = camera?.cameraInfo?.hasFlashUnit() ?: false
+        flashSwitch.isGone = hasFlash.not()
+        if(hasFlash) {
+            flashSwitch.setOnCheckedChangeListener { _, isChecked ->
+                isFlashEnabled = isChecked
+            }
+        } else {
+            isFlashEnabled = false
+            flashSwitch.setOnCheckedChangeListener(null)
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
     private fun bindZoomListener() = with(binding) {
         val listener = object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector?): Boolean {
@@ -170,10 +188,12 @@ class MainActivity : AppCompatActivity() {
                     binding.previewImageView.loadCenterCrop(url = it.toString(), corner = 4f)
                 }
                 uriList.add(it)
+                flashLight(false)
                 false
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this, "file not found", Toast.LENGTH_SHORT).show()
+                flashLight(false)
                 false
             }
         }
@@ -192,6 +212,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+        if(isFlashEnabled) flashLight(true)
         imageCapture.takePicture(outputOptions, cameraExecutor, object  : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                 val savedUri = outputFileResults.savedUri ?: Uri.fromFile(photoFile)
@@ -203,9 +224,17 @@ class MainActivity : AppCompatActivity() {
             override fun onError(exception: ImageCaptureException) {
                 exception.printStackTrace()
                 isCapturing = false
+                flashLight(false)
             }
 
         })
+    }
+
+    private fun flashLight(light: Boolean) {
+        val hasFlash = camera?.cameraInfo?.hasFlashUnit() ?: false
+        if(hasFlash) {
+            camera?.cameraControl?.enableTorch(light)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
