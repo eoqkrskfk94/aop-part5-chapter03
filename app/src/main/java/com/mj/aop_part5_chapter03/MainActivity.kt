@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.Toast
 import androidx.camera.core.*
@@ -124,10 +125,31 @@ class MainActivity : AppCompatActivity() {
                 )
                 preview.setSurfaceProvider(viewFinder.surfaceProvider)
                 bindCaptureListener()
+                bindZoomListener()
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }, cameraMainExecutor)
+    }
+
+    private fun bindZoomListener() = with(binding) {
+        val listener = object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            override fun onScale(detector: ScaleGestureDetector?): Boolean {
+                val currentZoomRatio = camera?.cameraInfo?.zoomState?.value?.zoomRatio ?: 1f
+                val delta = detector?.scaleFactor!!
+
+                camera?.cameraControl?.setZoomRatio(currentZoomRatio * delta)
+                return true
+            }
+        }
+
+        val scaleGestureDetector = ScaleGestureDetector(this@MainActivity, listener)
+        viewFinder.setOnTouchListener { _, event ->
+            scaleGestureDetector.onTouchEvent(event)
+            return@setOnTouchListener true
+        }
+
     }
 
     private fun bindCaptureListener() = with(binding) {
