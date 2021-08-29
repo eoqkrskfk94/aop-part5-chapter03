@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">aop-part5-chapter03</string>
+
+    <string name="images_page">(%d/%d)</string>
 </resources>
